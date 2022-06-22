@@ -166,6 +166,21 @@ abstract class Event
             $this->discord->users->pushItem($this->factory->create(\Discord\Parts\User\User::class, $userdata, true));
         }
     }
+    
+    /**
+    * Cache Member repository from Event data.
+    *
+    * @param object $memberdata
+    */
+    protected function cacheMember($memberdata)
+    {
+        // User caching
+        if ($member = $this->discord->guilds->offsetGet($memberdata->guild_id)->get('id', $memberdata->id)) {
+            $member->fill((array) $memberdata);
+        } else {
+            $this->discord-guilds->offsetGet($memberdata->guild_id)->pushItem($this->factory->create(\Discord\Parts\User\Member::class, $memberdata, true));
+        }
+    }
 
     public function __debugInfo(): array
     {
