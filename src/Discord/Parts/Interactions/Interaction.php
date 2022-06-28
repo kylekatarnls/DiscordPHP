@@ -87,9 +87,24 @@ class Interaction extends Part
      */
     protected $responded = false;
 
+    protected $created_at;
+
+    private $objectId;
+
+    /**
+     * @inheritdoc
+     */
+    protected function afterConstruct(): void
+    {
+        $this->created_at = \Discord\getSnowflakeTimestamp($this->id);
+        $this->objectId = spl_object_id($this);
+        $timeDiff = time() - $this->created_at;
+        $this->discord->logger->debug("Received Interaction#{$this->objectId} {$this->id} in $timeDiff s");
+    }
+
     /**
      * Returns true if this interaction has been internally responded.
-     * 
+     *
      * @return bool The interaction is responded
      */
     public function isResponded(): bool
@@ -428,10 +443,24 @@ class Interaction extends Part
                 ],
             ]);
 
-            return $this->http->post(Endpoint::bind(Endpoint::INTERACTION_RESPONSE, $this->id, $this->token), (string) $multipart, $multipart->getHeaders());
+            $timeDiff = time() - $this->created_at;
+            $this->discord->logger->debug("Responding Interaction#{$this->objectId} {$this->id} from $timeDiff s ago");
+
+            return $this->http->post(Endpoint::bind(Endpoint::INTERACTION_RESPONSE, $this->id, $this->token), (string) $multipart, $multipart->getHeaders())
+                ->always(function () {
+                    $timeDiff = time() - $this->created_at;
+                    $this->discord->logger->debug("Responded Interaction#{$this->objectId} {$this->id} within $timeDiff s");
+                });
         }
 
-        return $this->http->post(Endpoint::bind(Endpoint::INTERACTION_RESPONSE, $this->id, $this->token), $payload);
+        $timeDiff = time() - $this->created_at;
+        $this->discord->logger->debug("Responding Interaction#{$this->objectId} {$this->id} from $timeDiff s ago");
+
+        return $this->http->post(Endpoint::bind(Endpoint::INTERACTION_RESPONSE, $this->id, $this->token), $payload)
+            ->always(function () {
+                $timeDiff = time() - $this->created_at;
+                $this->discord->logger->debug("Responded Interaction#{$this->objectId} {$this->id} within $timeDiff s");
+            });
     }
 
     /**
