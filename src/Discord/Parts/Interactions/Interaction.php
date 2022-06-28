@@ -98,7 +98,7 @@ class Interaction extends Part
     {
         $this->created_at = \Discord\getSnowflakeTimestamp($this->id);
         $this->objectId = spl_object_id($this);
-        $timeDiff = time() - $this->created_at;
+        $timeDiff = microtime(true) - $this->created_at;
         $this->discord->logger->debug("Received Interaction#{$this->objectId} {$this->id} in $timeDiff s");
     }
 
@@ -443,22 +443,22 @@ class Interaction extends Part
                 ],
             ]);
 
-            $timeDiff = time() - $this->created_at;
+            $timeDiff = microtime(true) - $this->created_at;
             $this->discord->logger->debug("Responding Interaction#{$this->objectId} {$this->id} from $timeDiff s ago");
 
             return $this->http->post(Endpoint::bind(Endpoint::INTERACTION_RESPONSE, $this->id, $this->token), (string) $multipart, $multipart->getHeaders())
                 ->always(function () {
-                    $timeDiff = time() - $this->created_at;
+                    $timeDiff = microtime(true) - $this->created_at;
                     $this->discord->logger->debug("Responded Interaction#{$this->objectId} {$this->id} within $timeDiff s");
                 });
         }
 
-        $timeDiff = time() - $this->created_at;
+        $timeDiff = microtime(true) - $this->created_at;
         $this->discord->logger->debug("Responding Interaction#{$this->objectId} {$this->id} from $timeDiff s ago");
 
         return $this->http->post(Endpoint::bind(Endpoint::INTERACTION_RESPONSE, $this->id, $this->token), $payload)
             ->always(function () {
-                $timeDiff = time() - $this->created_at;
+                $timeDiff = microtime(true) - $this->created_at;
                 $this->discord->logger->debug("Responded Interaction#{$this->objectId} {$this->id} within $timeDiff s");
             });
     }
